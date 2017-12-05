@@ -99,7 +99,7 @@
 
 (defun clj-create-test-file (src-ns test-file)
   (let ((content (concat "(ns " src-ns "-test\n"
-                         "  (:require [" src-ns " :refer :all] :reload)\n"
+                         "  (:require [" src-ns " :refer :all])\n"
                          "  (:use [clojure.test]))\n"
                          "\n"
                          "(deftest test-")))
@@ -262,6 +262,10 @@
   (setq TeX-parse-self t)
   (setq-default TeX-master nil))
 
+;; Edit markdown
+(use-package markdown-mode)
+(use-package flymd)
+
 (defun andy-replace ()
   "Replace all characters with dollar signs"
   (interactive)
@@ -269,6 +273,9 @@
     (goto-char (point-min))
     (while (search-forward-regexp "[^$]" nil t)
       (replace-match "$" nil t))))
+
+;; Docker
+(use-package dockerfile-mode)
 
 ;; Tide (Typescript IDE)
 ;(use-package tide)
