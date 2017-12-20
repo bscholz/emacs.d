@@ -33,6 +33,7 @@
   "Change the current indentation to the given number of spaces"
   (interactive "NNumber of spaces: ")
   (if (boundp 'c-basic-offset) (setq c-basic-offset n))
+  (if (boundp 'js2-basic-offset) (setq js2-basic-offset n))
   (setq indent-tabs-mode nil)
   (setq tab-width n)
   (redraw-display))
@@ -180,9 +181,12 @@
     (("melpa" . "http://melpa.org/packages/")
      ("melpa-stable" . "http://stable.melpa.org/packages/")
      ("gnu" . "http://elpa.gnu.org/packages/"))))
+ '(package-selected-packages
+   (quote
+    (google-translate dockerfile-mode flymd markdown-mode auctex rjsx-mode company projectile flycheck-clojure flycheck magit use-package)))
  '(scroll-bar-mode nil)
  '(show-paren-mode t nil (paren))
- '(standard-indent 3)
+ '(standard-indent 2)
  '(tool-bar-mode nil nil (tool-bar))
  '(transient-mark-mode t)
  '(visual-basic-mode-indent 4))
@@ -253,7 +257,8 @@
 ;;   :mode "\\.html?\\'")
 
 ;; rjsx-mode for react
-(use-package rjsx-mode)
+(use-package rjsx-mode
+  :mode "\\.js?\\'")
   
 (use-package tex-mode
   :ensure auctex
@@ -277,6 +282,13 @@
 ;; Docker
 (use-package dockerfile-mode)
 
+;; Google Translate
+(use-package google-translate
+  :bind
+  ("C-c s" . google-translate-smooth-translate)
+  :config
+  (setq google-translate-translation-directions-alist '(("en" . "es"))))
+
 ;; Tide (Typescript IDE)
 ;(use-package tide)
 
@@ -289,3 +301,11 @@
 ;;
 ;; (use-package actionscript-mode
 ;;   :mode ("\\.as\\'"))
+
+;; (use-package ejc-sql
+;;   :config (ejc-create-connection
+;;            "bongo-remote-dev"
+;;            :classpath "~/.m2/repository/mysql/mysql-connector-java/6.0.6/mysql-connector-java-6.0.6.jar"
+;;            :classname "com.mysql.jdbc.Driver"
+;;            :subprotocol "mysql"
+;;            :subname "//bongo-remote-dev:
