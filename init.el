@@ -152,6 +152,7 @@
  '(auto-encryption-mode t)
  '(auto-revert-verbose nil)
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backup"))))
+ '(before-save-hook (quote (delete-trailing-whitespace)))
  '(c-basic-offset 4)
  '(c-require-final-newline
    (quote
@@ -183,7 +184,7 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (google-translate dockerfile-mode flymd markdown-mode auctex rjsx-mode company projectile flycheck-clojure flycheck magit use-package)))
+    (add-node-modules-path google-translate dockerfile-mode flymd markdown-mode auctex rjsx-mode company projectile flycheck-clojure flycheck magit use-package)))
  '(scroll-bar-mode nil)
  '(show-paren-mode t nil (paren))
  '(standard-indent 2)
@@ -256,10 +257,16 @@
 ;; (use-package web-mode
 ;;   :mode "\\.html?\\'")
 
+;; adds project node modules to emacs' exec path
+(use-package add-node-modules-path)
+
 ;; rjsx-mode for react
 (use-package rjsx-mode
-  :mode "\\.js?\\'")
-  
+  :mode "\\.js?\\'"
+  :config
+  (add-hook 'rjsx-mode-hook #'flycheck-mode)
+  (add-hook 'rjsx-mode-hook #'add-node-modules-path))
+
 (use-package tex-mode
   :ensure auctex
   :config
