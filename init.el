@@ -1,4 +1,7 @@
-;; Put my custom files in .emacs.d
+;;; init.el --- emacs initialization
+;;; Commentary:
+;;; Code:
+;;Put my custom files in .emacs.d
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;; Add key binding to revert buffer
@@ -6,7 +9,7 @@
 
 ;; Thrush-like macro to thread through forms as the first arg (like Clojure)
 (defmacro -> (&rest body)
-  "Thread the first expression through the given forms as the first argument"
+  "Thread the first expression through the given BODY forms as the first argument."
   (let ((result (pop body)))
     (dolist (form body result)
       (setq result (append (list (car form) result)
@@ -14,33 +17,35 @@
 
 ;; Thrush-like macro to thread through forms as the last arg (like Clojure)
 (defmacro ->> (&rest body)
-  "Thread the first expression through the given forms as the last argument"
+  "Thread the first expression through the given BODY forms as the last argument."
   (let ((result (pop body)))
     (dolist (form body result)
       (setq result (append form (list result))))))
 
 (defun unix-file ()
-  "Change the current buffer to UTF 8 with Unix EOLs"
+  "Change the current buffer to UTF 8 with Unix EOLs."
   (interactive)
   (set-buffer-file-coding-system 'utf-8-unix t))
 
 (defun dos-file ()
-  "Change the current buffer to UTF 8 with DOS EOLs"
+  "Change the current buffer to UTF 8 with DOS EOLs."
   (interactive)
   (set-buffer-file-coding-system 'utf-8-dos t))
 
 (defun set-indentation-level (n)
-  "Change the current indentation to the given number of spaces"
+  "Change the current indentation to N spaces."
   (interactive "NNumber of spaces: ")
   (if (boundp 'c-basic-offset) (setq c-basic-offset n))
+  (if (boundp 'js-indent-level) (setq js-indent-level n))
   (if (boundp 'js2-basic-offset) (setq js2-basic-offset n))
+  (if (boundp 'sgml-basic-offset) (setq sgml-basic-offset n))
   (setq indent-tabs-mode nil)
   (setq tab-width n)
   (redraw-display))
 (global-set-key (kbd "C-c i") 'set-indentation-level)
 
 (defun find-next-long-line ()
-  "Find the next line longer than 80 characters"
+  "Find the next line longer than 80 characters."
   (interactive)
   (occur (make-string 81 ?.)))
 (global-set-key (kbd "C-c l") 'find-next-long-line)
@@ -61,15 +66,19 @@
 ;; Replace "old" with "new" everywhere it occurs within the given string,
 ;; starting from the given offset. Case sensitive.
 (defun string-replace-from-offset (old new str offset)
+  "Replace OLD with NEW everywhere it occurs within string STR, starting at OFFSET."
   (let ((case-fold-search nil)) ; be case sensitive
     (replace-regexp-in-string (regexp-quote old) new str t t nil offset)))
 
 ;; Replace "old" with "new" everywhere in the string. Case sensitive.
 (defun string-replace (old new str)
+  "Replace OLD with NEW everywhere it occurs within string STR."
   (string-replace-from-offset old new str 0))
 
 ;; Buffer sanitation
 (defun cleanup-buffer ()
+  "Clean up the current buffer.
+Untabify, delete trailing whitespace, set to UTF-8, and re-indent."
   (interactive)
   (untabify (point-min) (point-max))
   (delete-trailing-whitespace)
@@ -83,22 +92,26 @@
 ;;
 
 (defun clj-current-buffer-namespace ()
+  "Return the Clojure namespace of the current buffer."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward "(ns[[:space:]]+\\([[:alnum:]-.]+\\)")
     (match-string 1)))
 
 (defun clj-src-to-test (file-path)
+  "Return the file name of the test file corresponding to FILE-PATH."
   (->> file-path
        (string-replace "/src/" "/test/")
        (string-replace ".clj" "_test.clj")))
 
 (defun clj-test-to-src (file-path)
+  "Return the file name of the src file corresponding to FILE-PATH."
   (->> file-path
        (string-replace "/test/" "/src/")
        (string-replace "_test.clj" ".clj")))
 
 (defun clj-create-test-file (src-ns test-file)
+  "Create a Clojure test skeleton for SRC-NS namespace in TEST-FILE."
   (let ((content (concat "(ns " src-ns "-test\n"
                          "  (:require [" src-ns " :refer :all])\n"
                          "  (:use [clojure.test]))\n"
@@ -108,6 +121,7 @@
     (insert content)))
 
 (defun clj-create-src-file (test-ns src-file)
+  "Create a Clojure src skeleton for TEST-NS namespace in SRC-FILE."
   (let* ((offset (- (length test-ns) 5))
          (src-ns (string-replace-from-offset "-test" "" test-ns offset))
          (content (concat "(ns " src-ns "\n\n")))
@@ -115,22 +129,25 @@
     (insert content)))
 
 (defun clj-unit-test-p (file)
+  "Return true if FILE seems to be a Clojure unit test."
   (let ((start (- (length file) (length "_test.clj"))))
     (and (> start 0)
          (string-match-p (regexp-quote "_test.clj") file start))))
 
 (defun clj-jump-to-src (test-ns test-file)
+  "Jump to the Clojure source code for TEST-NS in TEST-FILE."
   (let ((src-file (clj-test-to-src test-file)))
     (if (file-exists-p src-file) (find-file src-file)
       (clj-create-src-file test-ns src-file))))
 
 (defun clj-jump-to-test (src-ns src-file)
+  "Jump to the Clojure test code for SRC-NS in SRC-FILE."
   (let ((test-file (clj-src-to-test src-file)))
     (if (file-exists-p test-file) (find-file test-file)
       (clj-create-test-file src-ns test-file))))
 
 (defun clj-jump-to-or-from-unit-test ()
-  "Jump between clojure source and unit test"
+  "Jump between clojure source and unit test."
   (interactive)
   (let ((ns (clj-current-buffer-namespace))
         (file (buffer-file-name)))
@@ -153,7 +170,7 @@
  '(auto-revert-verbose nil)
  '(backup-directory-alist (quote (("." . "~/.emacs.d/backup"))))
  '(before-save-hook (quote (delete-trailing-whitespace)))
- '(c-basic-offset 4)
+ '(c-basic-offset 2)
  '(c-require-final-newline
    (quote
     ((c-mode . t)
@@ -173,6 +190,8 @@
        (c-set-offset
         (quote substatement-open)
         0)))))
+ '(js-indent-level 2)
+ '(js2-strict-trailing-comma-warning nil)
  '(menu-bar-mode t)
  '(mouse-avoidance-mode (quote banish) nil (avoid))
  '(nxml-outline-child-indent 3)
@@ -184,8 +203,19 @@
      ("gnu" . "http://elpa.gnu.org/packages/"))))
  '(package-selected-packages
    (quote
-    (add-node-modules-path google-translate dockerfile-mode flymd markdown-mode auctex rjsx-mode company projectile flycheck-clojure flycheck magit use-package)))
+    (yaml-mode prettier-js add-node-modules-path google-translate dockerfile-mode flymd markdown-mode auctex rjsx-mode company projectile flycheck-clojure flycheck magit use-package)))
+ '(safe-local-variable-values
+   (quote
+    ((js2-indent-level . 2)
+     (eval add-hook
+           (quote js2-mode-hook)
+           (quote prettier-js-mode))
+     (eval add-to-list
+           (quote auto-mode-alist)
+           (quote
+            ("\\.js\\'" . js2-mode))))))
  '(scroll-bar-mode nil)
+ '(sgml-slash-distance 10000)
  '(show-paren-mode t nil (paren))
  '(standard-indent 2)
  '(tool-bar-mode nil nil (tool-bar))
@@ -224,7 +254,9 @@
   ("C-c g" . magit-status))
 
 ;; flycheck mode is for checking syntax on the fly
-(use-package flycheck)
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
 
 ;; flycheck-clojure to check clojure syntax on the fly
 (use-package flycheck-clojure)
@@ -279,7 +311,7 @@
 (use-package flymd)
 
 (defun andy-replace ()
-  "Replace all characters with dollar signs"
+  "Replace all characters with dollar signs."
   (interactive)
   (save-excursion
     (goto-char (point-min))
@@ -295,6 +327,9 @@
   ("C-c s" . google-translate-smooth-translate)
   :config
   (setq google-translate-translation-directions-alist '(("en" . "es"))))
+
+; YAML files (CloudFormation + Serverless Framework)
+(use-package yaml-mode)
 
 ;; Tide (Typescript IDE)
 ;(use-package tide)
@@ -316,3 +351,4 @@
 ;;            :classname "com.mysql.jdbc.Driver"
 ;;            :subprotocol "mysql"
 ;;            :subname "//bongo-remote-dev:
+;;; init.el ends here
