@@ -328,8 +328,11 @@ Untabify, delete trailing whitespace, set to UTF-8, and re-indent."
   :config
   (setq google-translate-translation-directions-alist '(("en" . "es"))))
 
-; YAML files (CloudFormation + Serverless Framework)
+;; YAML files (CloudFormation + Serverless Framework)
 (use-package yaml-mode)
+
+;; GraphQL
+(use-package graphql-mode)
 
 ;; Tide (Typescript IDE)
 ;(use-package tide)
