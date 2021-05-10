@@ -282,19 +282,10 @@ Untabify, delete trailing whitespace, set to UTF-8, and re-indent."
                                   (figwheel-sidecar.repl-api/cljs-repl))"))
 
 ;; Rainbow delimiters (used by parinfer, below)
-(use-package rainbow-delimiters)
-
-;; Parinfer
-(use-package parinfer
-  :ensure t
-  :bind
-  (("C-," . parinfer-toggle-mode))
+(use-package rainbow-delimiters
   :init
-  (progn (setq parinfer-extensions
-               '(defaults pretty-parens smart-tab smart-yank))
-         (add-hook 'clojure-mode-hook #'parinfer-mode)
-         (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-         (add-hook 'lisp-mode-hook #'parinfer-mode)))
+  (progn (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+         (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)))
 
 ;; Company mode is a generic completion framework (complete any)
 (use-package company
